@@ -1,0 +1,14 @@
+<h1>Upload Form</h1>
+
+<form action="/softwares/upload/" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<!--Software Name   <input type="text" name="software_name" />
+File   <input type="file" name="file" />
+OS   <input type="text" name="os" />
+Version   <input type="text" name="version" />
+Description   <input type="textarea" name="description" />
+Tags   <input type="text" name="tags" /> -->
+{{form.as_p}}
+<input type="submit" value="Upload" />
+</form>
+
