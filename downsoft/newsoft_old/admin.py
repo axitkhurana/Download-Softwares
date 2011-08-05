@@ -1,4 +1,4 @@
-from newsoft.models import Software,Operatingsys,Version#Comment
+from newsoft.models import Software,Os,Version#Comment
 from django.contrib import admin
 
 class SoftwareAdmin(admin.ModelAdmin):
@@ -7,5 +7,5 @@ class SoftwareAdmin(admin.ModelAdmin):
 	list_filter=('category',)#soft_name filter for different versions of same software, see ranges for download count and rating
 
 admin.site.register(Software,SoftwareAdmin)
-admin.site.register(Operatingsys)
+admin.site.register(Os)
 admin.site.register(Version)

@@ -1,0 +1,24 @@
+{% load extra_tags %} {# move to common template #}
+{% if top4 %}
+	<p>{{ category_dict }}</p>
+	<p>{{ top4 }}</p>
+
+	{% for key,value in category_dict.items %}
+    <ul>
+		<img src="/site_media/images/category_images/{{ key }}.jpg" />
+        <li>{{ key }}</li>
+		{% for i in value %}
+		<ul>
+			<li>{{i|slice:"1:"|first}}</li>
+		</ul>
+		{% endfor %}
+		{% for a in top4|hash:key %}
+		<ul>
+			<li><img src="/site_media/images/software_images/{{ key }}/{{a.soft_name}}.jpg" /></li>
+		</ul>
+		{% endfor %}
+    </ul>
+	{% endfor %}
+{% else %}
+    <p>No softwares are available.</p>
+{% endif %}

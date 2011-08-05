@@ -1,0 +1,41 @@
+{% load extra_tags %} {#TODO move to common template #}
+{% load comments %}
+
+{% if onesoft %}
+{#TODO Software Heading Main | Add image #}
+    <p>{{ single_version.os_type.software.soft_name }}</p>
+    <p>{{ tags|join:" | " }} 
+    <p>Version: 
+    {% for each_version in onesoft %}
+        {{ each_version.version }} 
+    {% endfor %}
+    </p>
+{# Software heading box ends #}
+    <p>{{ single_version.os_type.software.description }}</p>
+    {# Right Side Bar #} 
+    <p>
+    {% for each_version in onesoft %} {#TODO covert into dropdown inside download button #}
+        {{ each_version.link }} 
+    {% endfor %}
+    </p>
+	<p>{{ single_version.date_added }}</p>
+	<p>{{ single_version.size }}</p>
+	<p>{{ single_version.rating }}</p>
+    <p>{{ single_version.download_count }}</p>
+    {{ related }} {#TODO convert to link #}
+    {# Right Side Bar Ends #}
+{% else %}
+    <p>No softwares are available.</p>
+{% endif %}
+
+{% get_comment_count for single_version.os_type.software as comment_count %}
+<p> {{ comment_count }} comments have been posted </p>
+
+{% get_comment_list for single_version.os_type.software as comment_list %}
+{% for comment in comment_list %}
+<p> Comment: {{ comment.comment }} </p>
+<p> Posted by: {{ comment.username }} on {{ comment.submit_date }} </p>
+{% endfor %}
+
+{% render_comment_form for single_version.os_type.software %} {#TODO customise comment app after integrating with user https://docs.djangoproject.com/en/dev/ref/contrib/comments/#id1 #}
+

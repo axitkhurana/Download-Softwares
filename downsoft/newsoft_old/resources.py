@@ -32,7 +32,9 @@ CATEGORY_CHOICES = (
 				)
 #				('educational','Educational'),('file_transfer','File Transfer'),('system_tuning','System Tuning'))
 
-OS_CHOICES = (('w','Windows'),('l','Linux'),('m','Mac'))
+OS_CHOICES = (('windows','Windows'),('linux','Linux'),('mac','Mac'))
+
+DEFAULT_OS = OS_CHOICES[0]
 
 CATEGORY_LIST=[]
 for k in CATEGORY_CHOICES:
@@ -43,5 +45,3 @@ CATEGORY_TUPLE=tuple(CATEGORY_LIST)
 CATEGORY_DICT={}
 for k in CATEGORY_CHOICES:
 	CATEGORY_DICT[k[0]]=k[1]
-
-DEFAULT_OS = 'w'

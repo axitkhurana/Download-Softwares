@@ -9,21 +9,21 @@ class Software(models.Model):
 	description = models.TextField(null=True,blank=True)
 	category = models.CharField(max_length=80,choices=CATEGORY_TUPLE)
 	subcategory = models.CharField(max_length=80,choices=CATEGORY_CHOICES,null=True,blank=True)# server side chek for sub cat & display only req sub cat using javascript
-	tags = models.CharField(max_length=50,null=True,blank=True) #save tags as a,b,c csv w/o spaces
+	tags = models.CharField(max_length=50,null=True,blank=True)
 	def __unicode__(self):
 		return self.soft_name
 	#def total_downloads(self):
 	#	for 
 
-class Operatingsys(models.Model):
+class Os(models.Model):
 	software = models.ForeignKey(Software)
-	os_type = models.CharField(max_length=10,choices=OS_CHOICES) #os
+	os = models.CharField(max_length=10,choices=OS_CHOICES)
 	def __unicode__(self):
-		return '%s %s' % (self.software.soft_name,self.os_type)
+		return '%s %s' % (self.software.soft_name,self.os)
 
 class Version(models.Model):
 	version = models.CharField(max_length=20)
-	os_type = models.ForeignKey(Operatingsys)
+	os=models.ForeignKey(Os)
 	link=models.CharField(max_length=100)
 	date_added = models.DateTimeField('Date Added',default=datetime.now())
 	size=models.DecimalField(max_digits=7,decimal_places=2)	
@@ -32,7 +32,7 @@ class Version(models.Model):
 	uploaded_by = models.CharField('Uploaded By',max_length=20,null=True,blank=True)
 	show = models.BooleanField(default=False)
 	def __unicode__(self):
-		return '%s %s %s' % (self.os_type.software.soft_name,self.os_type.os_type,self.version)
+		return '%s %s %s' % (self.os.software.soft_name,self.os.os,self.version)
 """
 class Comment(models.Model):
 	software = models.ForeignKey(Software)
