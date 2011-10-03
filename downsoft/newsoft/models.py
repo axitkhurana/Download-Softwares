@@ -23,10 +23,11 @@ class Operatingsys(models.Model):
 
 class Version(models.Model):
 	version = models.CharField(max_length=20)
-	os_type = models.ForeignKey(Operatingsys)
+	operatingsys = models.ForeignKey(Operatingsys)
 	link=models.CharField(max_length=100)
 	date_added = models.DateTimeField('Date Added',default=datetime.now())
-	size=models.DecimalField(max_digits=7,decimal_places=2)	
+	size=models.DecimalField(max_digits=7,decimal_places=2,
+            null=True,blank=True,default=None)	
 	rating = models.DecimalField(max_digits=3,decimal_places=2,null=True,blank=True,default=None)
 	download_count = models.IntegerField('No. of Downloads',default=0)
 	uploaded_by = models.CharField('Uploaded By',max_length=20,null=True,blank=True)

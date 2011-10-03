@@ -1,6 +1,9 @@
 <h1>Upload Form</h1>
-
-<form action="/softwares/upload/" method="post" enctype="multipart/form-data">
+{% if form.is_multipart %}
+    <form action="/softwares/upload/" method="post" enctype="multipart/form-data">
+{% else %}
+    <form action="/softwares/upload/" method="post">
+{% endif %}
 {% csrf_token %}
 <!--Software Name   <input type="text" name="software_name" />
 File   <input type="file" name="file" />

@@ -2,3 +2,4 @@
 *.pot
 *.pyc
 local_settings.py
+downsoft/settings.py

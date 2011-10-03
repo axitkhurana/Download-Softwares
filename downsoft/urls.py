@@ -14,7 +14,7 @@ urlpatterns = patterns('',
 	(r'^softwares/(?P<os_type>[wlm])/$', 'newsoft.views.mainpage'), #check how to redirect default to w or record preference 
 	(r'^softwares/(?P<category>'+regex+')/$', 'newsoft.views.mainpage'),
 	(r'^softwares/(?P<os_type>[wlm])/(?P<soft_name>\w+)/$', 'newsoft.views.eachsoft'),
-    (r'^softwares/upload/$', 'softwares.views.uploadform'),
+    (r'^softwares/upload/$', 'newsoft.views.uploadform'),
 	(r'^softwares/search/$','newsoft.views.search'),
 	(r'^comments/', include('django.contrib.comments.urls')),
 	# (r'^softwares/browse/?q=(?P<q>)/$','softwares.views.search'),

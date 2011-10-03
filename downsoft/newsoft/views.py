@@ -3,11 +3,10 @@ from django.core.context_processors import csrf
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect,Http404,HttpResponse
 from newsoft.models import Software,Version,Operatingsys
-#from newsoft.forms import SoftwareForm,SearchForm
+from newsoft.forms import AddSoftwareForm
 from datetime import datetime
 from resources import CATEGORY_DICT,CATEGORY_LIST,DEFAULT_OS
 #from django.db.models import Q
-#import itertools
 #from somewhere import handle_uploaded_file
 
 def mainpage(request, os_type=DEFAULT_OS):
@@ -16,7 +15,8 @@ def mainpage(request, os_type=DEFAULT_OS):
         count """
     top4={}
     for i in CATEGORY_LIST:
-        top4[i[1]] = Version.objects.filter(os_type__software__category = i[0], os_type__os_type = os_type).order_by('-download_count')[:4]
+        top4[i[1]] = Version.objects.filter(operatingsys__software__category =
+                i[0], operatingsys__os_type = os_type).order_by('-download_count')[:4]
     if request.method == 'POST':
         pass
         #form=SearchForm(request.POST) # delete this line Results here
@@ -27,12 +27,12 @@ def mainpage(request, os_type=DEFAULT_OS):
 def eachsoft(request, soft_name=None, os_type=DEFAULT_OS):
     """ view for software | particular name and os,all versions """
     try:
-        onesoft = Version.objects.filter(os_type__software__soft_name__iexact = soft_name, os_type__os_type = os_type).order_by('-date_added')
+        onesoft = Version.objects.filter(operatingsys__software__soft_name__iexact = soft_name, operatingsys__os_type = os_type).order_by('-date_added')
         single_version = list(onesoft)[0]
         #render to response doesn't take care of csrf token
         #single_version = onesoft[:1].get() #.get() doesn't use cache , queries the database evertime
-        related = Version.objects.filter(os_type__software__category = single_version.os_type.software.category, os_type__os_type = os_type).order_by('-download_count')[:12] #picks most downloaded same category software as related, add artificial intelligence based on user interaction
-        tags = single_version.os_type.software.tags.split(',')
+        related = Version.objects.filter(operatingsys__software__category = single_version.operatingsys.software.category, operatingsys__os_type = os_type).order_by('-download_count')[:12] #picks most downloaded same category software as related, add artificial intelligence based on user interaction
+        tags = single_version.operatingsys.software.tags.split(',')
     except (Version.DoesNotExist, KeyError):
         raise Http404
     template_dict = {'onesoft': onesoft, 'tags':tags, 'single_version':single_version, 'related':related}
@@ -42,6 +42,7 @@ def search(request, os_type=DEFAULT_OS):
     "view for search"
     query = request.GET.get('q', '')
     results=[]
+    #for sorting by most downloaded change -date_added to -download_count
     if query:
         #qset = (
         #   Q(soft_name__icontains=query) |
@@ -50,11 +51,11 @@ def search(request, os_type=DEFAULT_OS):
         #   Q(tags__icontains=query) |
         #   Q(description__iconntains=query)
         #)
-        r1 = Version.objects.filter(os_type__software__soft_name__icontains = query, os_type__os_type = os_type).order_by('-download_count')
-        r2 = Version.objects.filter(os_type__software__category__icontains = query, os_type__os_type = os_type).order_by('-download_count')
-        r3 = Version.objects.filter(os_type__software__subcategory__icontains = query, os_type__os_type = os_type).order_by('-download_count')
-        r4 = Version.objects.filter(os_type__software__tags__icontains = query, os_type__os_type = os_type).order_by('-download_count')
-        r5 = Version.objects.filter(os_type__software__description__icontains = query, os_type__os_type = os_type).order_by('-download_count')
+        r1 = Version.objects.filter(operatingsys__software__soft_name__icontains = query, operatingsys__os_type = os_type).order_by('-date_added')
+        r2 = Version.objects.filter(operatingsys__software__category__icontains = query, operatingsys__os_type = os_type).order_by('-date_added')
+        r3 = Version.objects.filter(operatingsys__software__subcategory__icontains = query, operatingsys__os_type = os_type).order_by('-date_added')
+        r4 = Version.objects.filter(operatingsys__software__tags__icontains = query, operatingsys__os_type = os_type).order_by('-date_added')
+        r5 = Version.objects.filter(operatingsys__software__description__icontains = query, operatingsys__os_type = os_type).order_by('-date_added')
         #for a in itertools.chain(r1,r2,r3,r4,r5):
         #   results.append(a)
         results = list(r1)+list(r2)+list(r3)+list(r4)+list(r5)
@@ -107,35 +108,56 @@ def categories(request):
         #show main page 'yo' here
         return render_to_response('index.html',{'category_dict':CATEGORY_DICT,'top4':top4}) #Iterate category in template , sort and slice(making a function for this) on basis of rating for top 4 and then pass as variables in template
 
+
+class AlreadyExists(Exception):
+    "Custom Exception for Already Existing Object"
+    def __init__(self,value):
+        self.value = value
+    def __str__(self):
+        return repr(value)
+
 def uploadform(request):
-    "view for upload form"
+    "view for upload form # check if parameters are required"
     if request.method == 'POST':
-        new_soft=Software(date_added=datetime.now(),download_count=0,show=False,link="default link",size=20,uploaded_by="backwas") #change default link
-        form=SoftwareForm(request.POST, instance=new_soft)#request.FILES,
+        form = AddSoftwareForm(request.POST, request.FILES)
+        #new_soft=Software(date_added=datetime.now(),download_count=0,show=False,link="default link",size=20,uploaded_by="backwas") #change default link
+        #form=SoftwareForm(request.POST, instance=new_soft)#request.FILES,
         if form.is_valid():
-#           handle_uploaded_file(request.FILES['file'])
-            form.save()
+            soft_name = form.cleaned_data['soft_name']
+            description = form.cleaned_data['description']
+            category = form.cleaned_data['category']
+            subcategory = form.cleaned_data['subcategory']
+            tags = form.cleaned_data['tags'] #parse these/use django taggify
+            try:
+                soft_object = Software.objects.get(soft_name__iexact=soft_name)
+            except Software.DoesNotExist:
+                soft_object = Software(soft_name=soft_name,
+                        description=description,
+                        category=category,
+                        subcategory=subcategory, tags=tags)
+                os_type = form.cleaned_data['os_type']
+                try:
+                    os_object = Operatingsys.objects.get(os_type__iexact =
+                            os_type, software = soft_object)
+                except Operatingsys.DoesNotExist:
+                    os_object = Operatingsys(os_type=os_type,
+                            software=soft_object)
+                    version = form.cleaned_data['version']
+                    link = form.cleaned_data['link']
+                    # uploaded_by #integrate this with users
+                    try:
+                        version_object = Version.objects.get(version__iexact =
+                                version, operatingsys = os_object)
+                    except Version.DoesNotExist:
+                        version_object = Version.objects.get(version_iexact =
+                                version, operatingsys=os_object, link=link)
+                    else:
+                        raise AlreadyExists('Same Version Already Exists')
+            #handle_uploaded_file(request.FILES['file'])
+            #form.save()
             return render_to_response('index.html')
         return render_to_response('index.html',{'form':form,},context_instance=RequestContext(request))
-        form=SoftwareForm(request.POST)
+        form=AddSoftwareForm(request.POST)
     else:
-        form=SoftwareForm()
+        form=AddSoftwareForm()
     return render_to_response('uploadform.html',{'form':form,},context_instance=RequestContext(request))
-"""
-def search(request):
-    query = request.GET.get('q', '')
-    if query:
-        qset = (
-            Q(soft_name__icontains=query) |
-            Q(category__icontains=query) |
-            Q(subcategory__icontains=query) |
-            Q(tags__icontains=query) |
-            Q(description__icontains=query)
-        )
-        results = Software.objects.filter(qset).distinct()
-    else:
-        results = []
-    return render_to_response("results.html", {"results":results,"query": query})
-
-"""
-
