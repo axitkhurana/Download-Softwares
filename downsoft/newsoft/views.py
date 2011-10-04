@@ -1,3 +1,5 @@
+import os
+import errno
 from django.template import RequestContext
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response
@@ -6,6 +8,7 @@ from newsoft.models import Software, Version, Operatingsys
 from newsoft.forms import AddSoftwareForm
 from datetime import datetime
 from resources import CATEGORY_DICT, CATEGORY_LIST, DEFAULT_OS
+from settings import UPLOAD_DIR
 
 def mainpage(request, os_type=DEFAULT_OS):
     """ returns a dictionary with key as category 
@@ -76,28 +79,27 @@ def remove_duplicates(seq, idfun=None):
         result.append(item) 
     return result
 
-"""
-def group_soft(objects):
-    "groups software according to same name into classes"
-    group={}
-    for a in objects:
-        if a.soft_name not in  group:
-            group[a.soft_name]=[a,]
-        else:
-            group[a.soft_name].append(a)
-    return group
 
-
-def group_soft(objects):
-    "groups software according to same name"
-    group={}
-    for a in objects:
-        if a.soft_name not in  group:
-            group[a.soft_name]=[a,]
-        else:
-            group[a.soft_name].append(a)
-    return group
-"""
+#def group_soft(objects):
+#    "groups software according to same name into classes"
+#    group={}
+#    for a in objects:
+#        if a.soft_name not in  group:
+#            group[a.soft_name]=[a,]
+#        else:
+#            group[a.soft_name].append(a)
+#    return group
+#
+#
+#def group_soft(objects):
+#    "groups software according to same name"
+#    group={}
+#    for a in objects:
+#        if a.soft_name not in  group:
+#            group[a.soft_name]=[a,]
+#        else:
+#            group[a.soft_name].append(a)
+#    return group
 def categories(request):
     "view for main page"
     if request.method == 'POST':
@@ -107,8 +109,23 @@ def categories(request):
         return render_to_response('index.html',{'category_dict':CATEGORY_DICT,'top4':top4}) #Iterate category in template , sort and slice(making a function for this) on basis of rating for top 4 and then pass as variables in template
 
 
-def handle_uploaded_file(f, software=None, os_type=None):
-    destination = open('/home/akshit/testupload/'+f.name, 'wb+')
+def mkdir_p(path):
+    "mkdir -p functionality taking care of the race condition"
+    try:
+        os.makedirs(path)
+    except OSError:
+        if OSError.errno == errno.EEXIST: #directory already exists
+            pass
+        else:
+            raise
+
+
+def handle_uploaded_file(f, software):
+    path = os.path.join(UPLOAD_DIR, software.category, software.subcategory,
+            software.soft_name)
+    if not os.path.exists(path):
+        mkdir_p(path)
+    destination = open(os.path.join(path,f.name), 'wb+')
     for chunk in f.chunks():
         destination.write(chunk)
     destination.close()
@@ -124,8 +141,6 @@ def uploadform(request):
     "view for upload form # check if parameters are required"
     if request.method == 'POST':
         form = AddSoftwareForm(request.POST, request.FILES)
-        #new_soft=Software(date_added=datetime.now(),download_count=0,show=False,link="default link",size=20,uploaded_by="backwas") #change default link
-        #form=SoftwareForm(request.POST, instance=new_soft)#request.FILES,
         if form.is_valid():
             soft_name = form.cleaned_data['soft_name']
             description = form.cleaned_data['description']
@@ -159,7 +174,7 @@ def uploadform(request):
                         version_object.save()
                     else:
                         raise AlreadyExists('Version')
-            handle_uploaded_file(request.FILES['file'])
+            handle_uploaded_file(request.FILES['file'], soft_object)
             return render_to_response('index.html')
         return render_to_response('index.html',{'form':form,},context_instance=RequestContext(request))
         form=AddSoftwareForm(request.POST)

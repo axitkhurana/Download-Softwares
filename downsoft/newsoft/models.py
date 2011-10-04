@@ -33,7 +33,8 @@ class Version(models.Model):
 	uploaded_by = models.CharField('Uploaded By',max_length=20,null=True,blank=True)
 	show = models.BooleanField(default=False)
 	def __unicode__(self):
-		return '%s %s %s' % (self.os_type.software.soft_name,self.os_type.os_type,self.version)
+		return '%s %s %s' % (self.operatingsys.software.soft_name,
+                self.operatingsys.os_type, self.version)
 """
 class Comment(models.Model):
 	software = models.ForeignKey(Software)
