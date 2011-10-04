@@ -14,4 +14,4 @@ class AddSoftwareForm(forms.Form):
     version = forms.CharField(required=False) 
     os_type = forms.ChoiceField(choices=OS_CHOICES)
     link = forms.CharField(required=False) # link or file , atleast one
-    filepath = forms.FileField()
+    file = forms.FileField()

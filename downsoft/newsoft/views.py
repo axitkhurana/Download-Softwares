@@ -1,13 +1,11 @@
 from django.template import RequestContext
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect,Http404,HttpResponse
-from newsoft.models import Software,Version,Operatingsys
+from django.http import HttpResponseRedirect, Http404, HttpResponse
+from newsoft.models import Software, Version, Operatingsys
 from newsoft.forms import AddSoftwareForm
 from datetime import datetime
-from resources import CATEGORY_DICT,CATEGORY_LIST,DEFAULT_OS
-#from django.db.models import Q
-#from somewhere import handle_uploaded_file
+from resources import CATEGORY_DICT, CATEGORY_LIST, DEFAULT_OS
 
 def mainpage(request, os_type=DEFAULT_OS):
     """ returns a dictionary with key as category 
@@ -109,12 +107,18 @@ def categories(request):
         return render_to_response('index.html',{'category_dict':CATEGORY_DICT,'top4':top4}) #Iterate category in template , sort and slice(making a function for this) on basis of rating for top 4 and then pass as variables in template
 
 
+def handle_uploaded_file(f, software=None, os_type=None):
+    destination = open('/home/akshit/testupload/'+f.name, 'wb+')
+    for chunk in f.chunks():
+        destination.write(chunk)
+    destination.close()
+
 class AlreadyExists(Exception):
     "Custom Exception for Already Existing Object"
     def __init__(self,value):
         self.value = value
     def __str__(self):
-        return repr(value)
+        return repr('Object Already Exists of type: ' + self.value)
 
 def uploadform(request):
     "view for upload form # check if parameters are required"
@@ -135,6 +139,7 @@ def uploadform(request):
                         description=description,
                         category=category,
                         subcategory=subcategory, tags=tags)
+                soft_object.save()
                 os_type = form.cleaned_data['os_type']
                 try:
                     os_object = Operatingsys.objects.get(os_type__iexact =
@@ -142,6 +147,7 @@ def uploadform(request):
                 except Operatingsys.DoesNotExist:
                     os_object = Operatingsys(os_type=os_type,
                             software=soft_object)
+                    os_object.save()
                     version = form.cleaned_data['version']
                     link = form.cleaned_data['link']
                     # uploaded_by #integrate this with users
@@ -149,12 +155,11 @@ def uploadform(request):
                         version_object = Version.objects.get(version__iexact =
                                 version, operatingsys = os_object)
                     except Version.DoesNotExist:
-                        version_object = Version.objects.get(version_iexact =
-                                version, operatingsys=os_object, link=link)
+                        version_object = Version(version = version, operatingsys=os_object, link=link)
+                        version_object.save()
                     else:
-                        raise AlreadyExists('Same Version Already Exists')
-            #handle_uploaded_file(request.FILES['file'])
-            #form.save()
+                        raise AlreadyExists('Version')
+            handle_uploaded_file(request.FILES['file'])
             return render_to_response('index.html')
         return render_to_response('index.html',{'form':form,},context_instance=RequestContext(request))
         form=AddSoftwareForm(request.POST)
