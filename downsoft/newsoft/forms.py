@@ -9,9 +9,12 @@ class AddSoftwareForm(forms.Form):
     description = forms.CharField(required=False,widget=forms.Textarea)
     category = forms.ChoiceField(choices=CATEGORY_TUPLE)
     subcategory = forms.ChoiceField(choices=CATEGORY_CHOICES,required=False)
-    forms.ChoiceField(choices=CATEGORY_CHOICES)#    server side check for sub cat & display only req sub cat using javascript
-    tags = forms.CharField(required=False)#use django tags with suggestions
+    forms.ChoiceField(choices=CATEGORY_CHOICES)
+    #server side check for sub cat & display only req sub cat using javascript
+    tags = forms.CharField(required=False)
+    #use django tags with suggestions
     version = forms.CharField(required=False) 
     os_type = forms.ChoiceField(choices=OS_CHOICES)
-    link = forms.CharField(required=False) # link or file , atleast one
+    link = forms.CharField(required=False) 
+    # link or file , atleast one
     file = forms.FileField()

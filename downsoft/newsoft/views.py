@@ -79,27 +79,6 @@ def remove_duplicates(seq, idfun=None):
         result.append(item) 
     return result
 
-
-#def group_soft(objects):
-#    "groups software according to same name into classes"
-#    group={}
-#    for a in objects:
-#        if a.soft_name not in  group:
-#            group[a.soft_name]=[a,]
-#        else:
-#            group[a.soft_name].append(a)
-#    return group
-#
-#
-#def group_soft(objects):
-#    "groups software according to same name"
-#    group={}
-#    for a in objects:
-#        if a.soft_name not in  group:
-#            group[a.soft_name]=[a,]
-#        else:
-#            group[a.soft_name].append(a)
-#    return group
 def categories(request):
     "view for main page"
     if request.method == 'POST':
@@ -118,7 +97,6 @@ def mkdir_p(path):
             pass
         else:
             raise
-
 
 def handle_uploaded_file(f, software):
     path = os.path.join(UPLOAD_DIR, software.category, software.subcategory,
